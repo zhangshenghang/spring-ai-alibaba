@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.alibaba.cloud.ai.graph.CompiledGraph;
-import com.alibaba.cloud.ai.graph.GraphStateException;
+import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.StateGraph;
 import com.alibaba.cloud.ai.graph.action.EdgeAction;
@@ -55,7 +55,7 @@ public class CustomerServiceController {
 		public String apply(OverAllState state) throws Exception {
 
 			String classifierOutput = (String) state.value("classifier_output").orElse("");
-			logger.info("classifierOutput: " + classifierOutput);
+			logger.info("classifierOutput: {}", classifierOutput);
 
 			if (classifierOutput.contains("positive")) {
 				return "positive";
@@ -71,7 +71,7 @@ public class CustomerServiceController {
 		public String apply(OverAllState state) throws Exception {
 
 			String classifierOutput = (String) state.value("classifier_output").orElse("");
-			logger.info("classifierOutput: " + classifierOutput);
+			logger.info("classifierOutput: {}", classifierOutput);
 
 			Map<String, String> classifierMap = new HashMap<>();
 			classifierMap.put("after-sale", "after-sale");

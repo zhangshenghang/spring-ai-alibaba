@@ -34,3 +34,18 @@ tools: ## Install ci tools
 
 	@echo "Installing yamllint"
 	pip install yamllint==1.35.1
+
+	@echo "Installing yamlfmt"
+	go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+
+	@echo "Installing gitleaks"
+	mkdir -p tools/bin && \
+	cd tools/bin && \
+	git clone https://github.com/gitleaks/gitleaks && \
+	cd gitleaks && \
+	make build && \
+	chmod +x gitleaks && \
+	cp gitleaks /usr/local/bin && \
+	cd .. && rm -rf gitleaks
+
+	gitleaks --version

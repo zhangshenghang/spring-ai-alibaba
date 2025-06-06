@@ -17,7 +17,16 @@ package com.alibaba.cloud.ai.graph;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
+import static java.lang.String.format;
+
+/**
+ * A final class representing configuration for a runnable task. This class holds various
+ * parameters such as thread ID, checkpoint ID, next node, and stream mode, providing
+ * methods to modify these parameters safely without permanently altering the original
+ * configuration.
+ */
 public final class RunnableConfig {
 
 	private String threadId;
@@ -151,7 +160,7 @@ public final class RunnableConfig {
 
 		/**
 		 * Sets the checkpoint ID for the configuration.
-		 * @param checkPointId - the ID of the checkpoint to be set
+		 * @param {@code checkPointId} - the ID of the checkpoint to be set
 		 * @return {@literal this} - a reference to the current `Builder` instance
 		 */
 		public Builder checkPointId(String checkPointId) {
@@ -213,8 +222,8 @@ public final class RunnableConfig {
 
 	@Override
 	public String toString() {
-		return "RunnableConfig{" + "threadId='" + threadId + '\'' + ", checkPointId='" + checkPointId + '\''
-				+ ", nextNode='" + nextNode + '\'' + ", streamMode=" + streamMode + '}';
+		return format("RunnableConfig{ threadId=%s, checkPointId=%s, nextNode=%s, streamMode=%s }", threadId,
+				checkPointId, nextNode, streamMode);
 	}
 
 }

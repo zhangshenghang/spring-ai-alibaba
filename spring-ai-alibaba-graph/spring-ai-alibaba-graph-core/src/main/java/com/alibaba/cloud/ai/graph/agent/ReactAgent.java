@@ -15,26 +15,24 @@
  */
 package com.alibaba.cloud.ai.graph.agent;
 
-import com.alibaba.cloud.ai.graph.CompileConfig;
-import com.alibaba.cloud.ai.graph.CompiledGraph;
-import com.alibaba.cloud.ai.graph.GraphStateException;
-import com.alibaba.cloud.ai.graph.OverAllState;
-import com.alibaba.cloud.ai.graph.StateGraph;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import com.alibaba.cloud.ai.graph.*;
+import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.alibaba.cloud.ai.graph.action.AsyncNodeAction;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
 import com.alibaba.cloud.ai.graph.node.LlmNode;
 import com.alibaba.cloud.ai.graph.node.ToolNode;
 import com.alibaba.cloud.ai.graph.state.strategy.AppendStrategy;
+
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.model.function.FunctionCallback;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.resolution.ToolCallbackResolver;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 
 import static com.alibaba.cloud.ai.graph.StateGraph.END;
 import static com.alibaba.cloud.ai.graph.StateGraph.START;
@@ -61,23 +59,23 @@ public class ReactAgent {
 
 	private CompileConfig compileConfig;
 
-	private OverAllState state;
+	private OverAllStateFactory overAllStateFactory;
 
 	private Function<OverAllState, Boolean> shouldContinueFunc;
 
-	public ReactAgent(LlmNode llmNode, ToolNode toolNode, int maxIterations, OverAllState state,
+	public ReactAgent(LlmNode llmNode, ToolNode toolNode, int maxIterations, OverAllStateFactory overAllStateFactory,
 			CompileConfig compileConfig, Function<OverAllState, Boolean> shouldContinueFunc)
 			throws GraphStateException {
 		this.llmNode = llmNode;
 		this.toolNode = toolNode;
 		this.max_iterations = maxIterations;
-		this.state = state;
+		this.overAllStateFactory = overAllStateFactory;
 		this.compileConfig = compileConfig;
 		this.shouldContinueFunc = shouldContinueFunc;
 		this.graph = initGraph();
 	}
 
-	public ReactAgent(String name, ChatClient chatClient, List<FunctionCallback> tools, int maxIterations)
+	public ReactAgent(String name, ChatClient chatClient, List<ToolCallback> tools, int maxIterations)
 			throws GraphStateException {
 		this.name = name;
 		this.llmNode = LlmNode.builder().chatClient(chatClient).messagesKey("messages").build();
@@ -86,14 +84,14 @@ public class ReactAgent {
 		this.graph = initGraph();
 	}
 
-	public ReactAgent(String name, ChatClient chatClient, List<FunctionCallback> tools, int maxIterations,
-			OverAllState state, CompileConfig compileConfig, Function<OverAllState, Boolean> shouldContinueFunc)
-			throws GraphStateException {
+	public ReactAgent(String name, ChatClient chatClient, List<ToolCallback> tools, int maxIterations,
+			OverAllStateFactory overAllStateFactory, CompileConfig compileConfig,
+			Function<OverAllState, Boolean> shouldContinueFunc) throws GraphStateException {
 		this.name = name;
 		this.llmNode = LlmNode.builder().chatClient(chatClient).messagesKey("messages").build();
 		this.toolNode = ToolNode.builder().toolCallbacks(tools).build();
 		this.max_iterations = maxIterations;
-		this.state = state;
+		this.overAllStateFactory = overAllStateFactory;
 		this.compileConfig = compileConfig;
 		this.graph = initGraph();
 	}
@@ -112,13 +110,13 @@ public class ReactAgent {
 	}
 
 	public ReactAgent(String name, ChatClient chatClient, ToolCallbackResolver resolver, int maxIterations,
-			OverAllState state, CompileConfig compileConfig, Function<OverAllState, Boolean> shouldContinueFunc)
-			throws GraphStateException {
+			OverAllStateFactory overAllStateFactory, CompileConfig compileConfig,
+			Function<OverAllState, Boolean> shouldContinueFunc) throws GraphStateException {
 		this.name = name;
 		this.llmNode = LlmNode.builder().chatClient(chatClient).messagesKey("messages").build();
 		this.toolNode = ToolNode.builder().toolCallbackResolver(resolver).build();
 		this.max_iterations = maxIterations;
-		this.state = state;
+		this.overAllStateFactory = overAllStateFactory;
 		this.compileConfig = compileConfig;
 		this.shouldContinueFunc = shouldContinueFunc;
 		this.graph = initGraph();
@@ -159,13 +157,15 @@ public class ReactAgent {
 	}
 
 	private StateGraph initGraph() throws GraphStateException {
-		if (state == null) {
-			OverAllState defaultState = new OverAllState();
-			defaultState.registerKeyAndStrategy("messages", new AppendStrategy());
-			this.state = defaultState;
+		if (overAllStateFactory == null) {
+			this.overAllStateFactory = () -> {
+				OverAllState defaultState = new OverAllState();
+				defaultState.registerKeyAndStrategy("messages", new AppendStrategy());
+				return defaultState;
+			};
 		}
 
-		return new StateGraph(name, state).addNode("agent", node_async(this.llmNode))
+		return new StateGraph(this.overAllStateFactory).addNode("agent", node_async(this.llmNode))
 			.addNode("tool", node_async(this.toolNode))
 			.addEdge(START, "agent")
 			.addConditionalEdges("agent", edge_async(this::think), Map.of("continue", "tool", "end", END))
@@ -222,12 +222,12 @@ public class ReactAgent {
 		this.compileConfig = compileConfig;
 	}
 
-	OverAllState getState() {
-		return state;
+	OverAllStateFactory getOverAllStateFactory() {
+		return overAllStateFactory;
 	}
 
-	void setState(OverAllState state) {
-		this.state = state;
+	void setOverAllStateFactory(OverAllStateFactory overAllStateFactory) {
+		this.overAllStateFactory = overAllStateFactory;
 	}
 
 	Function<OverAllState, Boolean> getShouldContinueFunc() {
@@ -248,7 +248,7 @@ public class ReactAgent {
 
 		private ChatClient chatClient;
 
-		private List<FunctionCallback> tools;
+		private List<ToolCallback> tools;
 
 		private ToolCallbackResolver resolver;
 
@@ -256,7 +256,7 @@ public class ReactAgent {
 
 		private CompileConfig compileConfig;
 
-		private OverAllState state;
+		private OverAllStateFactory allStateFactory;
 
 		private Function<OverAllState, Boolean> shouldContinueFunc;
 
@@ -270,7 +270,7 @@ public class ReactAgent {
 			return this;
 		}
 
-		public Builder tools(List<FunctionCallback> tools) {
+		public Builder tools(List<ToolCallback> tools) {
 			this.tools = tools;
 			return this;
 		}
@@ -285,8 +285,8 @@ public class ReactAgent {
 			return this;
 		}
 
-		public Builder state(OverAllState state) {
-			this.state = state;
+		public Builder state(OverAllStateFactory overAllStateFactory) {
+			this.allStateFactory = overAllStateFactory;
 			return this;
 		}
 
@@ -302,11 +302,12 @@ public class ReactAgent {
 
 		public ReactAgent build() throws GraphStateException {
 			if (resolver != null) {
-				return new ReactAgent(name, chatClient, resolver, maxIterations, state, compileConfig,
+				return new ReactAgent(name, chatClient, resolver, maxIterations, allStateFactory, compileConfig,
 						shouldContinueFunc);
 			}
 			else if (tools != null) {
-				return new ReactAgent(name, chatClient, tools, maxIterations, state, compileConfig, shouldContinueFunc);
+				return new ReactAgent(name, chatClient, tools, maxIterations, allStateFactory, compileConfig,
+						shouldContinueFunc);
 			}
 			throw new IllegalArgumentException("Either tools or resolver must be provided");
 		}

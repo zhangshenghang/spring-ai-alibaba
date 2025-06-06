@@ -15,22 +15,23 @@
  */
 package com.alibaba.cloud.ai.toolcalling.weather;
 
+import com.alibaba.cloud.ai.toolcalling.common.CommonToolCallConstants;
+import com.alibaba.cloud.ai.toolcalling.common.CommonToolCallProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import static com.alibaba.cloud.ai.toolcalling.weather.WeatherProperties.WEATHER_PREFIX;
 
 /**
  * @author 31445
  */
-@ConfigurationProperties(prefix = "spring.ai.alibaba.toolcalling.weather")
-public class WeatherProperties {
+@ConfigurationProperties(prefix = WEATHER_PREFIX)
+public class WeatherProperties extends CommonToolCallProperties {
 
-	private String apiKey;
+	protected static final String WEATHER_PREFIX = CommonToolCallConstants.TOOL_CALLING_CONFIG_PREFIX + ".weather";
 
-	public String getApiKey() {
-		return apiKey;
-	}
-
-	public void setApiKey(String apiKey) {
-		this.apiKey = apiKey;
+	public WeatherProperties() {
+		super("https://api.weatherapi.com/");
+		this.setPropertiesFromEnv("WEATHER_API_KEY", null, null, null);
 	}
 
 }

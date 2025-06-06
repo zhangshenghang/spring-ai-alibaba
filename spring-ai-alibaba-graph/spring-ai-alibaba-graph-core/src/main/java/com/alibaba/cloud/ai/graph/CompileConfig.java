@@ -35,12 +35,22 @@ public class CompileConfig {
 
 	private SaverConfig saverConfig;
 
-	private PlainTextStateSerializer plainTextStateSerializer;
-
 	// private BaseCheckpointSaver checkpointSaver; // replaced with SaverConfig
 	private Set<String> interruptsBefore = Set.of();
 
 	private Set<String> interruptsAfter = Set.of();
+
+	private boolean releaseThread = false;
+
+	/**
+	 * Returns the current state of the thread release flag.
+	 *
+	 * @see BaseCheckpointSaver#release(RunnableConfig)
+	 * @return true if the thread has been released, false otherwise
+	 */
+	public boolean releaseThread() {
+		return releaseThread;
+	}
 
 	/**
 	 * Returns the array of interrupts that will occur before the specified node.
@@ -128,22 +138,23 @@ public class CompileConfig {
 		}
 
 		/**
+		 * Sets whether the thread should be released according to the provided flag.
+		 * @param releaseThread The flag indicating whether to release the thread.
+		 * @see BaseCheckpointSaver#release(RunnableConfig)
+		 * @return The current {@code Builder} instance for method chaining.
+		 */
+		public Builder releaseThread(boolean releaseThread) {
+			this.config.releaseThread = releaseThread;
+			return this;
+		}
+
+		/**
 		 * Sets the checkpoint saver for the configuration.
 		 * @param saverConfig The {@code BaseCheckpointSaver} to set.
 		 * @return The current {@code Builder} instance for method chaining.
 		 */
 		public Builder saverConfig(SaverConfig saverConfig) {
 			this.config.saverConfig = saverConfig;
-			return this;
-		}
-
-		/**
-		 * Plain text state serializer builder.
-		 * @param plainTextStateSerializer the plain text state serializer
-		 * @return The current {@code Builder} instance for method chaining.
-		 */
-		public Builder plainTextStateSerializer(PlainTextStateSerializer plainTextStateSerializer) {
-			this.config.plainTextStateSerializer = plainTextStateSerializer;
 			return this;
 		}
 
@@ -185,7 +196,6 @@ public class CompileConfig {
 		 */
 		public Builder interruptsAfter(Collection<String> interruptsAfter) {
 			this.config.interruptsAfter = interruptsAfter.stream().collect(Collectors.toUnmodifiableSet());
-			;
 			return this;
 		}
 
@@ -215,6 +225,7 @@ public class CompileConfig {
 		this.saverConfig = config.saverConfig;
 		this.interruptsBefore = config.interruptsBefore;
 		this.interruptsAfter = config.interruptsAfter;
+		this.releaseThread = config.releaseThread;
 	}
 
 }
