@@ -25,7 +25,7 @@ codespell: CODESPELL_SKIP := $(shell cat tools/linter/codespell/.codespell.skip 
 codespell: ## Check the code-spell
 	@$(LOG_TARGET)
 	codespell --version
-	codespell --skip $(CODESPELL_SKIP) --ignore-words ./tools/linter/codespell/.codespell.ignorewords
+	codespell --skip "$(CODESPELL_SKIP)" --ignore-words ./tools/linter/codespell/.codespell.ignorewords
 
 .PHONY: yaml-lint
 yaml-lint: ## Check the yaml lint
@@ -34,7 +34,7 @@ yaml-lint: ## Check the yaml lint
 	yamllint -c ./tools/linter/yamllint/.yamllint .
 
 .PHONY: yaml-lint-fix
-yaml-lint-fix:
+yaml-lint-fix: ## Yaml lint fix
 	@$(LOG_TARGET)
 	yamlfmt -version
 	yamlfmt .

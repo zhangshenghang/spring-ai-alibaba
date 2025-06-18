@@ -17,8 +17,8 @@ package com.alibaba.cloud.ai.graph.streaming;
 
 import com.alibaba.cloud.ai.graph.NodeOutput;
 import com.alibaba.cloud.ai.graph.OverAllState;
-import org.bsc.async.AsyncGenerator;
-import org.bsc.async.FlowGenerator;
+import com.alibaba.cloud.ai.graph.async.AsyncGenerator;
+import com.alibaba.cloud.ai.graph.async.FlowGenerator;
 import org.reactivestreams.FlowAdapters;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -113,9 +113,11 @@ public interface StreamingChatGenerator {
 					var lastMessage = lastResponse.getResult().getOutput();
 
 					var newMessage = new AssistantMessage(
-							ofNullable(currentMessage.getText()).map(text -> lastMessage.getText().concat(text))
-								.orElse(lastMessage.getText()),
-							currentMessage.getMetadata(), currentMessage.getToolCalls(), currentMessage.getMedia());
+							Objects.requireNonNull(ofNullable(currentMessage.getText()).map(text -> {
+								assert lastMessage.getText() != null;
+								return lastMessage.getText().concat(text);
+							}).orElse(lastMessage.getText())), currentMessage.getMetadata(),
+							currentMessage.getToolCalls(), currentMessage.getMedia());
 
 					var newGeneration = new Generation(newMessage, response.getResult().getMetadata());
 					return new ChatResponse(List.of(newGeneration), response.getMetadata());
@@ -123,7 +125,7 @@ public interface StreamingChatGenerator {
 				});
 			};
 
-			var processedFlux = flux.doOnNext(next -> mergeMessage.accept(next))
+			var processedFlux = flux.doOnNext(mergeMessage::accept)
 				.map(next -> new StreamingOutput(next.getResult().getOutput().getText(), startingNode, startingState));
 
 			return FlowGenerator.fromPublisher(FlowAdapters.toFlowPublisher(processedFlux),

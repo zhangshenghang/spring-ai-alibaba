@@ -4,20 +4,24 @@ spring:
   application:
     name: spring-ai-alibaba-deepresearch
   ai:
-    openai:
+    dashscope:
       api-key: ${AI_DASHSCOPE_API_KEY}
-      base-url: https://dashscope.aliyuncs.com/compatible-mode
-      chat:
+      base-url: https://dashscope.aliyuncs.com
+      embedding:
         options:
-          model: qwen-max
+          model: text-embedding-v1
       client:
         connection-timeout: 60000
         read-timeout: 300000
         write-timeout: 60000
+
     mcp:
       client:
-        sse:
-          servers-configuration: classpath:mcp-servers.json
+        type: async
+#        sse:
+#          connections:
+#            weather_mcp_server:
+#              url: http://localhost:8888
         stdio:
           servers-configuration: classpath:mcp-servers.json
         toolcallback:
@@ -27,9 +31,27 @@ spring:
         tavilysearch:
           enabled: true
           api-key: ${TAVILY_API_KEY}
-      deepreserch:
-#        background-investigation-type: tool_calls
-
+        jinacrawler:
+          enabled: true
+          api-key: ${JINA_API_KEY}
+      deepresearch:
+        parallel-node-count:
+          researcher: 5
+          coder: 5
+        mcp-client-mapping:
+          researchAgent:
+            - amap-maps
+#          coderAgent:
+#            - amap-maps
+#            - weather_mcp_server
+        rag:
+          enabled: true
+          # 可以设置为 'simple' 或 'elasticsearch'
+          vector-store-type: simple
+          data:
+            # 启动时加载 classpath下data目录中的所有文件
+            locations:
+              - "classpath:/data/"
 logging:
   level:
     com.alibaba.cloud.ai.example.deepresearch: debug

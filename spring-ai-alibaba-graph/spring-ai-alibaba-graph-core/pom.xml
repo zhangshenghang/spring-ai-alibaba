@@ -37,6 +37,10 @@
         <url>https://github.com/alibaba/spring-ai-alibaba</url>
     </scm>
 
+    <properties>
+        <testcontainers.version>1.19.3</testcontainers.version>
+    </properties>
+
     <dependencies>
         <!--
             <dependency>
@@ -100,19 +104,19 @@
         <dependency>
             <groupId>com.github.docker-java</groupId>
             <artifactId>docker-java</artifactId>
-            <version>3.3.3</version>
+            <version>${docker-java}</version>
         </dependency>
 
         <dependency>
             <groupId>com.github.docker-java</groupId>
             <artifactId>docker-java-core</artifactId>
-            <version>3.3.3</version>
+            <version>${docker-java}</version>
         </dependency>
 
         <dependency>
             <groupId>com.github.docker-java</groupId>
-            <artifactId>docker-java-transport-httpclient5</artifactId>
-            <version>3.3.3</version>
+            <artifactId>docker-java-transport-zerodep</artifactId>
+            <version>${docker-java}</version>
         </dependency>
 
         <dependency>
@@ -131,12 +135,6 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>${commons-codec.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.bsc.async</groupId>
-            <artifactId>async-generator</artifactId>
-            <version>${async-generator.version}</version>
         </dependency>
 
         <dependency>
@@ -167,13 +165,6 @@
             <artifactId>redisson</artifactId>
             <version>${redission.version}</version>
             <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync -->
@@ -209,6 +200,21 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- TestContainers -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        
     </dependencies>
 
     <reporting>
