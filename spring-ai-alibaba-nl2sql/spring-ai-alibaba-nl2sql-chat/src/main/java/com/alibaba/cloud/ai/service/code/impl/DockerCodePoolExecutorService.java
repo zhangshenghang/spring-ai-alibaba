@@ -83,6 +83,7 @@ public class DockerCodePoolExecutorService extends AbstractCodePoolExecutorServi
 		if (!imageExists) {
 			// 拉取镜像
 			try {
+				log.info("Pulling Docker image: {}", properties.getImageName());
 				this.dockerClient.pullImageCmd(properties.getImageName())
 					.exec(new PullImageResultCallback())
 					.awaitCompletion();
@@ -92,6 +93,9 @@ public class DockerCodePoolExecutorService extends AbstractCodePoolExecutorServi
 				log.error("pull image {} error", properties.getImageName(), e);
 				throw new RuntimeException(e);
 			}
+		}
+		else {
+			log.info("Docker image {} already exists locally", properties.getImageName());
 		}
 	}
 

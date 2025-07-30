@@ -46,11 +46,6 @@ public class MarkdownParserTest {
 
 	private static final String MULTIPLE_CODE_BLOCKS = "```\nFirst Block\n```\n\nSome text\n\n```\nSecond Block\n```";
 
-	@BeforeEach
-	void setUp() {
-		// 每个测试前的准备工作（如有需要）
-	}
-
 	@Nested
 	@DisplayName("基本功能测试")
 	class BasicFunctionality {
