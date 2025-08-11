@@ -260,11 +260,9 @@
                 </div>
                 <div class="form-group">
                   <label>状态</label>
-                  <select v-model="agent.status" class="form-control">
-                    <option value="draft">待发布</option>
-                    <option value="published">已发布</option>
-                    <option value="offline">已下线</option>
-                  </select>
+                  <div class="form-control readonly-field">
+                    <span class="status-badge" :class="agent.status">{{ getStatusText(agent.status) }}</span>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label>创建时间</label>
@@ -2401,9 +2399,18 @@ export default {
           }
         }
 
-        // 4. 发布成功
-        showMessage('智能体发布成功！所有配置的数据源已完成初始化', 'success')
-        closePublishModal()
+        // 4. 调用发布接口，将智能体状态修改为已发布
+        showMessage('正在发布智能体...', 'info')
+        const publishResult = await agentApi.publish(agent.id)
+        
+        // 5. 更新本地智能体状态
+        agent.status = publishResult.status || 'published'
+        
+        // 6. 关闭发布下拉菜单
+        closePublishDropdown()
+        
+        // 7. 发布成功
+        showMessage('智能体发布成功！所有配置的数据源已完成初始化，智能体状态已更新为已发布', 'success')
         
       } catch (error) {
         console.error('发布智能体失败:', error)
